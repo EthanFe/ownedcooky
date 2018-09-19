@@ -48,7 +48,7 @@ class EventsController < ApplicationController
 		render json: get_bakeable_cookies(request_data["user_id"])
 	end
 
-	def bake_cookie
+	def bake_cookie_event
 		request_data = parse_url_encoded_data(request.body.read)
 		render json: bake_cookie(request_data["user_id"], request_data["text"])
 	end
@@ -183,7 +183,7 @@ class EventsController < ApplicationController
 			targeted_user = self.get_targeted_user(text)
       if targeted_user
         sending_user = Owner.find_by(slack_id: user_id)
-        if targeted_user != sending_user || true
+        if targeted_user != sending_user
           SlackBot.sendable_ingredient_emoji.each do |sendable_ingredient|
             if text.include?(":#{sendable_ingredient}:")
 							SlackBot.send_ingredient(sending_user, targeted_user, sendable_ingredient)

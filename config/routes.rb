@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 	# from slash commands in slack
 	post "/list_inventory", to: "events#list_inventory"
 	post "/list_bakeable_cookies", to: "events#list_bakeable_cookies"
-	post "/bake_cookie", to: "events#bake_cookie"
+	post "/bake_cookie", to: "events#bake_cookie_event"
 
 	# from website
 	post "/distribute_ingredients", to: "events#distribute_ingredients"
