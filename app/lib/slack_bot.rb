@@ -1,0 +1,83 @@
+class SlackBot
+  #these are both pretty dumbo but w/e
+  # Cake workspace token @@token = "xoxa-2-431241021636-431454794578-431243756420-5e277d6052f2e25e25d7b59c9bbcf9d4"
+  @@token = "xoxa-2-2727337933-435220560689-437153128614-8809645628b15162e1cf0c25bc33cecc"
+  @@sendable_ingredient_emoji = Ingredient.all.map { |ingredient| ingredient.emoji }
+  @@sendable_cookie_emoji = CookieRecipe.all.map { |cookie| cookie.emoji }
+
+  def self.startup
+		self.add_all_users
+  end
+
+  def self.give_ingredients_to_all_users(ingredient, count)
+    Owner.all.each do |member|
+      count.times do 
+        member.receive_giveable_ingredient(ingredient)
+      end
+    end
+  end
+
+  def self.add_all_users
+    users = self.get_user_list
+    if users
+      users.each do |user_id|
+        self.add_user_if_new(user_id) unless self.user_is_a_bot(user_id)
+      end
+    end
+  end
+
+  def self.get_user_list
+    channel_id = "CC7VBU8UW"
+    # request_url = "https://slack.com/api/users.list?token=#{@@token}&pretty=1"
+    request_url = "https://slack.com/api/channels.info?token=#{@@token}&channel=#{channel_id}&pretty=1"
+    response = JSON.parse(RestClient.get(request_url))
+    response["ok"] ? response["channel"]["members"] : false
+  end
+
+  def self.user_is_a_bot(user_id)
+    false # bots are real people too
+    # member == "USLACKBOT" || member["profile"]["bot_id"]
+  end
+
+  def self.add_user_if_new(user_id)
+    Owner.find_or_create_by(slack_id: user_id)
+  end
+
+  def self.get_name_of_user(user)
+    request_url = "https://slack.com/api/users.info?token=#{@@token}&user=#{user.slack_id}&pretty=1"
+    response = JSON.parse(RestClient.get(request_url))
+    response["user"]["real_name"]
+  end
+
+  def self.sendable_ingredient_emoji
+    @@sendable_ingredient_emoji
+  end
+
+  def self.sendable_cookie_emoji
+    @@sendable_cookie_emoji
+  end
+
+  def self.token
+    @@token
+  end
+
+  def self.send_sent_item_messages(sender, recipient, object)
+    self.send_message(sender.slack_id, "You gave a :#{object}: to #{SlackBot.get_name_of_user(recipient)}!")
+    self.send_message(recipient.slack_id, "#{SlackBot.get_name_of_user(sender)}: gave you a :#{object}:!")
+  end
+
+  def self.send_ingredient(sender, recipient, item)
+    self.send_sent_item_messages(sender, recipient, item)
+    sender.give_ingredient_to(recipient, Ingredient.find_by(emoji: item))
+  end
+
+  def self.send_cookie(sender, recipient, item)
+    self.send_sent_item_messages(sender, recipient, item)
+    sender.give_cookie_to(recipient, CookieRecipe.find_by(emoji: item))
+  end
+
+  def self.send_message(channel_id, text)
+    request_url = "https://slack.com/api/chat.postMessage?token=#{SlackBot.token}&channel=#{channel_id}&text=#{text}&pretty=1"
+    response = RestClient.get(request_url)
+  end
+end

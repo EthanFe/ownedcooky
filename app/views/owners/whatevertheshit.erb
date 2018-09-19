@@ -1,0 +1,12 @@
+
+<%= form_tag("/distribute_ingredients", method: "post") do %>
+	<%= label_tag("Distribute ingredients to all users") %>
+	<br>
+	<%= text_field_tag("quantity", nil, placeholder: 'Quantity') %>
+	<% arr_of_arrs = Ingredient.all.map {|ingredient| [ingredient.name, ingredient.id] }%>
+
+	<%= select_tag(:ingredient, options_for_select(arr_of_arrs)) %>
+	<br>
+	<%= submit_tag("Distribute") %>
+
+<% end %>
