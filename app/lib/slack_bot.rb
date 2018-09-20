@@ -1,7 +1,7 @@
 class SlackBot
-  #these are both pretty dumbo but w/e
-  # Cake workspace token @@token = "xoxa-2-431241021636-431454794578-431243756420-5e277d6052f2e25e25d7b59c9bbcf9d4"
-  @@token = "xoxa-2-2727337933-435220560689-437153128614-8809645628b15162e1cf0c25bc33cecc"
+  @@token = ENV['SLACK_API_TOKEN'] # maybe it makes no sense to have this separate from the stuff in application_helper?
+  
+  #this feels kinda dumb, idk
   @@sendable_ingredient_emoji = Ingredient.all.map { |ingredient| ingredient.emoji }
   @@sendable_cookie_emoji = CookieRecipe.all.map { |cookie| cookie.emoji }
 
@@ -61,19 +61,19 @@ class SlackBot
     @@token
   end
 
-  def self.send_sent_item_messages(sender, recipient, object)
-    self.send_message(sender.slack_id, "You gave a :#{object}: to #{SlackBot.get_name_of_user(recipient)}!")
-    self.send_message(recipient.slack_id, "#{SlackBot.get_name_of_user(sender)}: gave you a :#{object}:!")
+  def self.send_sent_item_messages(sender, recipient, object, count)
+    self.send_message(sender.slack_id, "You gave #{":#{object}:" * count} to #{SlackBot.get_name_of_user(recipient)}!")
+    self.send_message(recipient.slack_id, "#{SlackBot.get_name_of_user(sender)} gave you #{":#{object}:" * count}!")
   end
 
-  def self.send_ingredient(sender, recipient, item)
-    self.send_sent_item_messages(sender, recipient, item)
-    sender.give_ingredient_to(recipient, Ingredient.find_by(emoji: item))
+  def self.send_ingredient(sender, recipient, item, count)
+    successfully_sent = sender.give_ingredient_to(recipient, Ingredient.find_by(emoji: item), count)
+    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent
   end
 
-  def self.send_cookie(sender, recipient, item)
-    self.send_sent_item_messages(sender, recipient, item)
-    sender.give_cookie_to(recipient, CookieRecipe.find_by(emoji: item))
+  def self.send_cookie(sender, recipient, item, count)
+    successfully_sent = sender.give_cookie_to(recipient, CookieRecipe.find_by(emoji: item), count)
+    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent
   end
 
   def self.send_message(channel_id, text)

@@ -16,29 +16,32 @@ class Owner < ActiveRecord::Base
     end
 
     #give_ingredient_to(receiver)
-    def give_ingredient_to(receiver, ingredient)
+    def give_ingredient_to(receiver, ingredient, count)
         #check if owner has ingredient
         owned_ingredient = self.owned_ingredients.find_by(ingredient_id: ingredient.id)
 
         #if giver has enough to give
-        if owned_ingredient != nil && owned_ingredient.giveable_count > 0
+        if owned_ingredient != nil && owned_ingredient.giveable_count >= count
             #decrement giveable ingredient count
-            owned_ingredient.update(giveable_count: owned_ingredient.giveable_count - 1)
+            owned_ingredient.update(giveable_count: owned_ingredient.giveable_count - count)
             
             #call receive_ingredient_from(self)
-            receiver.receive_ingredient_from(self, ingredient)
+            receiver.receive_ingredient_from(self, ingredient, count)
+        else
+            #return false so we can tell the user they didnt have enough to send
+            false
         end
     end
 
     #receive_ingredient_from(giver)
-    def receive_ingredient_from(giver, ingredient)
+    def receive_ingredient_from(giver, ingredient, count)
         owned_ingredient = self.owned_ingredients.find_or_create_by(ingredient_id: ingredient.id)
 
         if owned_ingredient.received_count == nil #if just created
             owned_ingredient.update(received_count: 0, giveable_count: 0)
         end
 
-        owned_ingredient.update(received_count: owned_ingredient.received_count + 1)
+        owned_ingredient.update(received_count: owned_ingredient.received_count + count)
     end
 
     #list_cookie_recipes_you_can_bake
@@ -108,29 +111,32 @@ class Owner < ActiveRecord::Base
     end
 
      #give giveable_cookie_to(receiver)
-     def give_cookie_to(receiver, cookie_type)
+     def give_cookie_to(receiver, cookie_type, count)
         #check if owner has cookie
         owned_cookie = self.owned_cookies.find_by(cookie_recipe_id: cookie_type.id)
 
         #if giver has enough to give
-        if owned_cookie != nil && owned_cookie.giveable_count > 0
+        if owned_cookie != nil && owned_cookie.giveable_count >= count
             #decrement giveable ingredient count
-            owned_cookie.update(giveable_count: owned_cookie.giveable_count - 1)
+            owned_cookie.update(giveable_count: owned_cookie.giveable_count - count)
             
             #call receive_ingredient_from(self)
             receiver.receive_cookie_from(self, cookie_type)
+        else
+            #return false so we can tell the user they didnt have enough to send
+            false
         end
     end
 
     #receive_cookie_from(giver)
-    def receive_cookie_from(giver, cookie_type)
+    def receive_cookie_from(giver, cookie_type, count)
         owned_cookie = self.owned_cookies.find_or_create_by(cookie_recipe_id: cookie_type.id)
 
         if owned_cookie.received_count == nil #if just created
             owned_cookie.update(received_count: 0, giveable_count: 0)
         end
 
-        owned_cookie.update(received_count: owned_cookie.received_count + 1)
+        owned_cookie.update(received_count: owned_cookie.received_count + count)
     end
 
     #can_bake?(cookie_type)

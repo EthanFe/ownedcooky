@@ -184,21 +184,26 @@ class EventsController < ApplicationController
       if targeted_user
         sending_user = Owner.find_by(slack_id: user_id)
         if targeted_user != sending_user
-          SlackBot.sendable_ingredient_emoji.each do |sendable_ingredient|
-            if text.include?(":#{sendable_ingredient}:")
-							SlackBot.send_ingredient(sending_user, targeted_user, sendable_ingredient)
-						end
-					end
-					SlackBot.sendable_cookie_emoji.each do |sendable_cookie|
-						if text.include?(":#{sendable_cookie}:")
-							binding.pry
-							SlackBot.send_cookie(sending_user, targeted_user, sendable_cookie)
-						end
-					end
+          send_items_to_mentioned_user(sending_user, targeted_user, text)
 				else
 					SlackBot.send_message(sending_user.slack_id, "You can't send ingredients to yourself!")
 				end
       end
     end
-	end
+  end
+  
+  def send_items_to_mentioned_user(sender, recipient, text)
+    SlackBot.sendable_ingredient_emoji.each do |sendable_ingredient|
+      emojis_sent = text.scan(":#{sendable_ingredient}:").length
+      if emojis_sent > 0
+        SlackBot.send_ingredient(sender, recipient, sendable_ingredient, emojis_sent)
+      end
+    end
+    SlackBot.sendable_cookie_emoji.each do |sendable_cookie|
+      emojis_sent = text.scan(":#{sendable_cookie}:").length
+      if emojis_sent > 0
+        SlackBot.send_cookie(sender, recipient, sendable_cookie, emojis_sent)
+      end
+    end
+  end
 end
