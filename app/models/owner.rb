@@ -118,7 +118,7 @@ class Owner < ActiveRecord::Base
             owned_cookie.update(giveable_count: owned_cookie.giveable_count - count)
             
             #call receive_ingredient_from(self)
-            receiver.receive_cookie_from(self, cookie_type)
+            receiver.receive_cookie_from(self, cookie_type, count)
         else
             #return false so we can tell the user they didnt have enough to send
             false
