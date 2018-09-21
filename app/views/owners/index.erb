@@ -2,7 +2,11 @@
 	<% @owners.each do |owner| %>
 		<tr>
 			<td><%= owner.name %>:</td>
+			<% puts owner %>
+			<% puts owner.name %>
 			<% Ingredient.all.each do |ingredient| %>
+				<% puts ingredient.name %>
+				<% puts owner.owned_ingredients.find_by(ingredient_id: ingredient.id) %>
 				<% owned_ingredient = owner.owned_ingredients.find_by(ingredient_id: ingredient.id) %>
 				<td><%= "#{ingredient.emoji} #{owned_ingredient.giveable_count}/#{owned_ingredient.received_count}" %></td>
 			<% end %>
