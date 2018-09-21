@@ -202,7 +202,7 @@ class Owner < ActiveRecord::Base
     
     def refill_ingredients(count)
         Ingredient.all.each do |ingredient|
-            refill_giveable_ingredient(ingredient, 2) # why is this hardcoded? iunno
+            refill_giveable_ingredient(ingredient, count)
         end
     end
 

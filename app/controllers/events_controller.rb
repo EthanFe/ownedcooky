@@ -55,7 +55,7 @@ class EventsController < ApplicationController
 
   def distribute_ingredients
     count = params["quantity"].to_i
-		if count > 0
+    if count > 0
       if params[:auto_refill]
         Owner.add_giveable_ingredients(count)
       else
