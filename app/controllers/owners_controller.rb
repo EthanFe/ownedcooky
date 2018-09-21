@@ -1,7 +1,7 @@
 class OwnersController < ApplicationController
 	def index
 		# render :index
-		redirect_to "http://www.rubyonrails.org"
+		@owners = Owner.all
 	end
 
 	def exampleaction

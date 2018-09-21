@@ -53,12 +53,17 @@ class EventsController < ApplicationController
 		render json: bake_cookie(request_data["user_id"], request_data["text"])
 	end
 
-	def distribute_ingredients
-		count = params["quantity"].to_i
-		ingredient = Ingredient.find(params["ingredient"])
+  def distribute_ingredients
+    count = params["quantity"].to_i
 		if count > 0
-			SlackBot.give_ingredients_to_all_users(ingredient, count)
-			puts "Sent all users #{count} #{ingredient.name}"
+      if params[:auto_refill]
+        Owner.add_giveable_ingredients(count)
+      else
+        Owner.add_giveable_ingredients(count, Ingredient.find(params["ingredient"]))
+      end
+      
+			# SlackBot.give_ingredients_to_all_users(ingredient, count)
+			# puts "Sent all users #{count} #{ingredient.name}"
 			# Events.send_message(channel_id, "Everyone has received #{count} more :#{ingredient.emoji}: to send to others!")
 			# "(ADMIN) Sent all users #{count} #{ingredient.name}"
 		else
@@ -178,6 +183,7 @@ class EventsController < ApplicationController
     user_id = event_data["user"]
     text = event_data["text"]
     channel_id = event_data["channel"]
+    check_for_attendance_message(user_id, text)
     puts "message text: #{text}"
 		if text
 			targeted_user = self.get_targeted_user(text)
@@ -189,6 +195,13 @@ class EventsController < ApplicationController
 					SlackBot.send_message(sending_user.slack_id, "You can't send ingredients to yourself!")
 				end
       end
+    end
+  end
+
+  def check_for_attendance_message(user_id, text)
+    #this is the best way of automating tasks ever
+    if user_id == "USLACKBOT" && text.include?("Reminder: Fill out attendance sheet")
+      Owner.add_giveable_ingredients(2) # no one will ever know why this is hardcoded
     end
   end
   

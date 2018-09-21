@@ -3,16 +3,22 @@ class Owner < ActiveRecord::Base
     has_many :owned_ingredients
     has_many :owned_cookies
 
+    #create owned_ database entries so we can assume they exist later
+    def initialize_owned_items
+        if self.owned_ingredients.length == 0
+            Ingredient.all.each do |ingredient|
+                self.owned_ingredients.create(ingredient_id: ingredient.id, giveable_count: 0, received_count: 0)
+            end
+            CookieRecipe.all.each do |cookie|
+                self.owned_cookies.create(cookie_recipe_id: cookie.id, giveable_count: 0, received_count: 0)
+            end
+        end
+    end
+
     #receive_giveable_ingredient
     def receive_giveable_ingredient(ingredient)
-        owned_ingredient = self.owned_ingredients.find_or_create_by(ingredient_id: ingredient.id)
-
-        if owned_ingredient.received_count == nil && owned_ingredient.giveable_count == nil#if just created
-            owned_ingredient.update(received_count: 0, giveable_count: 0)
-        end
-
+        owned_ingredient = self.owned_ingredients.find_by(ingredient_id: ingredient.id)
         owned_ingredient.update(giveable_count: owned_ingredient.giveable_count + 1)
-
     end
 
     #give_ingredient_to(receiver)
@@ -35,12 +41,7 @@ class Owner < ActiveRecord::Base
 
     #receive_ingredient_from(giver)
     def receive_ingredient_from(giver, ingredient, count)
-        owned_ingredient = self.owned_ingredients.find_or_create_by(ingredient_id: ingredient.id)
-
-        if owned_ingredient.received_count == nil #if just created
-            owned_ingredient.update(received_count: 0, giveable_count: 0)
-        end
-
+        owned_ingredient = self.owned_ingredients.find_by(ingredient_id: ingredient.id)
         owned_ingredient.update(received_count: owned_ingredient.received_count + count)
     end
 
@@ -102,11 +103,7 @@ class Owner < ActiveRecord::Base
 
     #receive giveable cookie
     def receive_giveable_cookie(cookie_type)
-        owned_cookie = self.owned_cookies.find_or_create_by(cookie_recipe_id: cookie_type.id)
-        if owned_cookie.received_count == nil && owned_cookie.giveable_count == nil#if just created
-            owned_cookie.update(received_count: 0, giveable_count: 0)
-        end
-
+        owned_cookie = self.owned_cookies.find_by(cookie_recipe_id: cookie_type.id)
         owned_cookie.update(giveable_count: owned_cookie.giveable_count + 1)
     end
 
@@ -130,12 +127,7 @@ class Owner < ActiveRecord::Base
 
     #receive_cookie_from(giver)
     def receive_cookie_from(giver, cookie_type, count)
-        owned_cookie = self.owned_cookies.find_or_create_by(cookie_recipe_id: cookie_type.id)
-
-        if owned_cookie.received_count == nil #if just created
-            owned_cookie.update(received_count: 0, giveable_count: 0)
-        end
-
+        owned_cookie = self.owned_cookies.find_by(cookie_recipe_id: cookie_type.id)
         owned_cookie.update(received_count: owned_cookie.received_count + count)
     end
 
@@ -196,5 +188,31 @@ class Owner < ActiveRecord::Base
             cookie_count_hash[owned_cookie.cookie_recipe_id] = owned_cookie.received_count
         end
         cookie_count_hash
+    end
+
+    def self.add_giveable_ingredients(count, ingredient = nil)
+        Owner.all.each do |owner|
+            if ingredient
+                owner.receive_giveable_ingredient(ingredient)
+            else
+                owner.refill_ingredients(count)
+            end
+		end
+    end
+    
+    def refill_ingredients(count)
+        Ingredient.all.each do |ingredient|
+            refill_giveable_ingredient(ingredient, 2) # why is this hardcoded? iunno
+        end
+    end
+
+    def refill_giveable_ingredient(ingredient, count)
+        owned_ingredient = self.owned_ingredients.find_by(ingredient_id: ingredient.id)
+        new_count = [count, owned_ingredient.giveable_count].max
+        owned_ingredient.update(giveable_count: new_count)
+    end
+
+    def name
+        SlackBot.get_name_of_user(self)
     end
 end

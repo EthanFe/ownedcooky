@@ -1,2 +1,11 @@
-
-<h1>this is very good example text</h1>
+<table>
+	<% @owners.each do |owner| %>
+		<tr>
+			<td><%= owner.name %>:</td>
+			<% Ingredient.all.each do |ingredient| %>
+				<% owned_ingredient = owner.owned_ingredients.find_by(ingredient_id: ingredient.id) %>
+				<td><%= "#{ingredient.emoji} #{owned_ingredient.giveable_count}/#{owned_ingredient.received_count}" %></td>
+			<% end %>
+		</tr>
+	<% end %>
+</table>

@@ -6,7 +6,13 @@
 	<% arr_of_arrs = Ingredient.all.map {|ingredient| [ingredient.name, ingredient.id] }%>
 
 	<%= select_tag(:ingredient, options_for_select(arr_of_arrs)) %>
-	<br>
+	<br/><br/>
+
+	<%= check_box_tag(:auto_refill) %>
+	<%= label_tag(:auto_refill, "Auto-Refill (reset quantity and give out all resource types at once)") %>
+
+	<br/><br/>
+
 	<%= submit_tag("Distribute") %>
 
 <% end %>

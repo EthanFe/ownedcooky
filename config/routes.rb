@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-	# resource :owner, only: [:index]
+	resource :owners, only: :index
 	root 'owners#index'
 	get "/example/", to: "owners#exampleaction"
 	# get "/events", to: "events#processing"

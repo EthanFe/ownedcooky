@@ -9,14 +9,6 @@ class SlackBot
 		self.add_all_users
   end
 
-  def self.give_ingredients_to_all_users(ingredient, count)
-    Owner.all.each do |member|
-      count.times do 
-        member.receive_giveable_ingredient(ingredient)
-      end
-    end
-  end
-
   def self.add_all_users
     users = self.get_user_list
     if users
@@ -40,7 +32,8 @@ class SlackBot
   end
 
   def self.add_user_if_new(user_id)
-    Owner.find_or_create_by(slack_id: user_id)
+    owner = Owner.find_or_create_by(slack_id: user_id)
+    owner.initialize_owned_items
   end
 
   def self.get_name_of_user(user)
@@ -68,12 +61,12 @@ class SlackBot
 
   def self.send_ingredient(sender, recipient, item, count)
     successfully_sent = sender.give_ingredient_to(recipient, Ingredient.find_by(emoji: item), count)
-    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent
+    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent # else should return an error message here
   end
 
   def self.send_cookie(sender, recipient, item, count)
     successfully_sent = sender.give_cookie_to(recipient, CookieRecipe.find_by(emoji: item), count)
-    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent
+    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent # else should return an error message here
   end
 
   def self.send_message(channel_id, text)
