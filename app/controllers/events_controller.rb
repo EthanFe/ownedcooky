@@ -25,7 +25,7 @@ class EventsController < ApplicationController
 				# Get the Team ID and Event data from the request object
 				team_id = request_data['team_id']
 				event_data = request_data['event']
-				
+
 				case event_data['type']
 				when 'message'
 					message_sent(event_data)
@@ -61,7 +61,7 @@ class EventsController < ApplicationController
       else
         Owner.add_giveable_ingredients(count, Ingredient.find(params["ingredient"]))
       end
-      
+
 			# SlackBot.give_ingredients_to_all_users(ingredient, count)
 			# puts "Sent all users #{count} #{ingredient.name}"
 			# Events.send_message(channel_id, "Everyone has received #{count} more :#{ingredient.emoji}: to send to others!")
@@ -70,7 +70,7 @@ class EventsController < ApplicationController
 			puts "Couldn't send ingredients, invalid quantity"
 		end
 	end
-	
+
 
 	#helper function for below
 	def get_targeted_user(message)
@@ -87,10 +87,10 @@ class EventsController < ApplicationController
     # some slightly arcane code stolen from stackoverflow
     # turns an array of strings of the form "key=value" into a hash
     Hash[properties.map do |property|
-      property.split("=") 
+      property.split("=")
     end]
 	end
-	
+
 	#i feel like this logic should actually probably be in the model(s)
 	def cookie_inventory(user_id)
 		owner = Owner.find_by(slack_id: user_id)
@@ -172,7 +172,7 @@ class EventsController < ApplicationController
       "Enter a cookie type after `/cookies-bake` to make cookies. Use `/cookies-bakeable-list` to see available types."
     end
 	end
-	
+
 	# event handling stuff
 	def user_joined(team_id, event_data)
 		user_id = event_data['user']['id']
@@ -191,12 +191,18 @@ class EventsController < ApplicationController
         sending_user = Owner.find_by(slack_id: user_id)
         if targeted_user != sending_user
           send_items_to_mentioned_user(sending_user, targeted_user, text)
-				else
+				elsif cookie_emojis_in_message(text)
 					SlackBot.send_message(sending_user.slack_id, "You can't send ingredients to yourself!")
 				end
       end
     end
   end
+
+	def cookie_emojis_in_message(message)
+		SlackBot.sendable_ingredient_emoji.concat(SlackBot.sendable_cookie_emoji).any? do |emoji|
+			message.include?(emoji)
+		end
+	end
 
   def check_for_attendance_message(user_id, text)
     #this is the best way of automating tasks ever
@@ -204,7 +210,7 @@ class EventsController < ApplicationController
       Owner.add_giveable_ingredients(2) # no one will ever know why this is hardcoded
     end
   end
-  
+
   def send_items_to_mentioned_user(sender, recipient, text)
     SlackBot.sendable_ingredient_emoji.each do |sendable_ingredient|
       emojis_sent = text.scan(":#{sendable_ingredient}:").length
