@@ -8,7 +8,7 @@
 			<% end %>
 
 			<% CookieRecipe.all.each do |cookie| %>
-				<% owned_cookie = owner.owned_cookies.find_by(cookie_id: cookie.id) %>
+				<% owned_cookie = owner.owned_cookies.find_by(cookie_recipe_id: cookie.id) %>
 				<td><%= "#{cookie.emoji} #{owned_cookie.giveable_count}/#{owned_cookie.received_count}" %></td>
 			<% end %>
 
