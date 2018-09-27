@@ -213,7 +213,13 @@ class EventsController < ApplicationController
 
   def send_items_to_mentioned_user(sender, recipient, text)
     SlackBot.sendable_ingredient_emoji.each do |sendable_ingredient|
+      3.times do
+        puts "INGREDIENT TYPE: #{sendable_ingredient}"
+      end
       emojis_sent = text.scan(":#{sendable_ingredient}:").length
+      3.times do
+        puts "TIMES FOUND IN TEXT: #{emojis_sent}"
+      end
       if emojis_sent > 0
         SlackBot.send_ingredient(sender, recipient, sendable_ingredient, emojis_sent)
       end
