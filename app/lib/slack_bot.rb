@@ -61,12 +61,20 @@ class SlackBot
 
   def self.send_ingredient(sender, recipient, item, count)
     successfully_sent = sender.give_ingredient_to(recipient, Ingredient.find_by(emoji: item), count)
-    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent # else should return an error message here
+    if successfully_sent
+     self.send_sent_item_messages(sender, recipient, item, count)
+    else
+      self.send_message(sender.slack_id, "You don't have enough :#{item}: to send to #{self.get_name_of_user(recipient)}!")
+    end
   end
 
   def self.send_cookie(sender, recipient, item, count)
     successfully_sent = sender.give_cookie_to(recipient, CookieRecipe.find_by(emoji: item), count)
-    self.send_sent_item_messages(sender, recipient, item, count) if successfully_sent # else should return an error message here
+    if successfully_sent
+      self.send_sent_item_messages(sender, recipient, item, count)
+    else
+      self.send_message(sender.slack_id, "You don't have enough :#{item}: to send to #{self.get_name_of_user(recipient)}!")
+    end
   end
 
   def self.send_message(channel_id, text)
