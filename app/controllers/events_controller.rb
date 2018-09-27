@@ -219,7 +219,13 @@ class EventsController < ApplicationController
       end
     end
     SlackBot.sendable_cookie_emoji.each do |sendable_cookie|
+      3.times do
+        puts "COOKIE TYPE: #{sendable_cookie}"
+      end
       emojis_sent = text.scan(":#{sendable_cookie}:").length
+      3.times do
+        puts "TIMES FOUND IN TEXT: #{emojis_sent}"
+      end
       if emojis_sent > 0
         SlackBot.send_cookie(sender, recipient, sendable_cookie, emojis_sent)
       end
